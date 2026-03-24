@@ -1,4 +1,4 @@
-# Projeto Univesp - Framework
+# Projeto Universidade
 
 Olá Pessoal!!!
 
@@ -26,7 +26,7 @@ Para rodar este projeto na sua máquina, siga os passos abaixo:
    ```bash
    git clone https://github.com
 2, **Entre na pasta do projeto:**
-   cd Projeto-univesp-
+   cd Projeto-universidade
 
 3, **Crie um ambiente virtual (opcional mais recomendado):** 
 python -m venv venv
