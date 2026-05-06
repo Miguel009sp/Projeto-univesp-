@@ -61,7 +61,7 @@ class Imovel(models.Model):
 
     nome = models.CharField(max_length=255)
     descricao = models.TextField()
-    foto_principal = models.CharField(max_length=255)
+    foto_principal = models.ImageField(upload_to='imovel/main_pic', max_length=255, null=True)
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE) # representa o dono do imovel
     valor_original = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES)

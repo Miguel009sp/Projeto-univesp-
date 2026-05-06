@@ -39,19 +39,54 @@ class EnderecoUsuarioSerializer(serializers.ModelSerializer):
     
 
 # Imoveis
-class ImovelSerializer(serializers.ModelSerializer):
-    class Meta: 
-        model = Imovel
-        fields = '__all__'
-
 class FotosImovelSerializer(serializers.ModelSerializer):
     class Meta: 
         model = FotosImovel
         fields = '__all__'
 
-class TerrenoSerializer(ImovelSerializer):
-    class Meta(ImovelSerializer.Meta):
+class ImovelSerializer(serializers.ModelSerializer):
+    class Meta: 
+        model = Imovel
+        fields = '__all__'
+
+class TerrenoSerializer(serializers.ModelSerializer):
+    class Meta:
         model = Terreno
-        fields = ImovelSerializer.Meta.fields + '__all__'
+        fields = "__all__"
+
+class CasaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Casa
+        fields = '__all__'
+    
+class ApartamentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Apartamento
+        fields = "__all__"
+
+class DetalhesApartamentoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DetalhesApartamento
+        fields = '__all__'
+    
+class SalaComercialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalaComercial
+        fields = '__all__'
+
+class GalpaoComercialSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GalpaoComercial
+        fields = '__all__'
+
+class SitioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sitio
+        fields = '__all__'
+
+class ChacaraSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Chacara
+        fields = '__all__'
 
         

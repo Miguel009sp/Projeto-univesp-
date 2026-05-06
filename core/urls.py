@@ -6,7 +6,13 @@ from rest_framework.routers import DefaultRouter
 from .views import *
 
 router = DefaultRouter()
-router.register(r'imoveis', viewset=ImovelViewSet)
+router.register(r'terrenos', viewset=TerrenoViewSet)
+router.register(r'casas', viewset=CasaViewSet)
+router.register(r'salas-comerciais', viewset=SalaComercialViewSet)
+router.register(r'galpoes-comerciais', viewset=GalpaoComercialViewSet)
+router.register(r'sitios', viewset=SitioViewSet)
+router.register(r'chacaras', viewset=ChacaraViewSet)
+router.register(r'apartamentos', viewset=ApartamentoViewSet)
 
 urlpatterns = [   
     path('', include(router.urls)),

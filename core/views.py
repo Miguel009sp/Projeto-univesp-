@@ -3,6 +3,7 @@ from rest_framework.generics import ListCreateAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework import viewsets
+from django.http import Http404
 
 from .models import *
 from .serializers import *
@@ -36,9 +37,34 @@ class ListCreateEnderecoUsuario(ListCreateAPIView):
     serializer_class = EnderecoUsuarioSerializer
 
 # Imovel
-class ImovelViewSet(viewsets.ViewSet):
-    queryset = Imovel.objects.all()
-    serializer_class = ImovelSerializer
+class TerrenoViewSet(viewsets.ModelViewSet):
+    queryset = Terreno.objects.all()
+    serializer_class = TerrenoSerializer
+
+class CasaViewSet(viewsets.ModelViewSet):
+    queryset = Casa.objects.all()
+    serializer_class = CasaSerializer
+
+class ApartamentoViewSet(viewsets.ModelViewSet):
+    queryset = DetalhesApartamento.objects.all()
+    serializer_class = DetalhesApartamentoSerializer
+
+class SalaComercialViewSet(viewsets.ModelViewSet):
+    queryset = SalaComercial.objects.all()
+    serializer_class = SalaComercialSerializer
+
+class GalpaoComercialViewSet(viewsets.ModelViewSet):
+    queryset = GalpaoComercial.objects.all()
+    serializer_class = GalpaoComercialSerializer
+
+class SitioViewSet(viewsets.ModelViewSet):
+    queryset = Sitio.objects.all()
+    serializer_class = SitioSerializer
+
+class ChacaraViewSet(viewsets.ModelViewSet):
+    queryset = Chacara.objects.all()
+    serializer_class = ChacaraSerializer
+    
 
 
     
