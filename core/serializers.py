@@ -44,49 +44,86 @@ class FotosImovelSerializer(serializers.ModelSerializer):
         model = FotosImovel
         fields = '__all__'
 
+class EnderecoImovelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EnderecoImovel
+        fields = ['bairro', 'logradouro', 'numero', 'complemento', 'cep', 'localidade', 'sigla_federacao']
+
 class ImovelSerializer(serializers.ModelSerializer):
+
+    endereco = EnderecoImovelSerializer()
+
     class Meta: 
         model = Imovel
         fields = '__all__'
 
-class TerrenoSerializer(serializers.ModelSerializer):
+    def create(self, validated_data):
+        endereco_data = validated_data.pop('endereco')
+        imovel = self.Meta.model.objects.create(**validated_data)
+        EnderecoImovel.objects.create(imovel=imovel, **endereco_data)
+        return imovel
+    
+    def update(self, instance, validated_data):
+        endereco_dados = validated_data.pop('endereco')
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+
+        if endereco_dados:
+            endereco = instance.endereco
+            for attr, value in endereco_dados.items():
+                setattr(endereco, attr, value)
+            endereco.save()
+        
+        return instance
+
+
+class TerrenoSerializer(ImovelSerializer):
     class Meta:
         model = Terreno
-        fields = "__all__"
+        fields = '__all__'
 
-class CasaSerializer(serializers.ModelSerializer):
+class CasaSerializer(ImovelSerializer):
     class Meta:
         model = Casa
         fields = '__all__'
     
-class ApartamentoSerializer(serializers.ModelSerializer):
+class ApartamentoSerializer(ImovelSerializer):
     class Meta:
         model = Apartamento
         fields = "__all__"
 
-class DetalhesApartamentoSerializer(serializers.ModelSerializer):
+class DetalhesApartamentoSerializer(ApartamentoSerializer):
     class Meta:
         model = DetalhesApartamento
         fields = '__all__'
     
-class SalaComercialSerializer(serializers.ModelSerializer):
+class SalaComercialSerializer(ImovelSerializer):
     class Meta:
         model = SalaComercial
         fields = '__all__'
 
-class GalpaoComercialSerializer(serializers.ModelSerializer):
+class GalpaoComercialSerializer(ImovelSerializer):
     class Meta:
         model = GalpaoComercial
         fields = '__all__'
 
-class SitioSerializer(serializers.ModelSerializer):
+class SitioSerializer(ImovelSerializer):
     class Meta:
         model = Sitio
         fields = '__all__'
 
-class ChacaraSerializer(serializers.ModelSerializer):
+class ChacaraSerializer(ImovelSerializer):
     class Meta:
         model = Chacara
+        fields = '__all__'
+
+# venda
+class VendaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Venda
         fields = '__all__'
 
         

@@ -42,14 +42,6 @@ class EnderecoUsuario(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
 
 # imoveis
-class EnderecoImovel(models.Model):
-    bairro = models.CharField(max_length=100)
-    logradouro = models.CharField(max_length=255)
-    numero = models.CharField(max_length=10)
-    complemento = models.CharField(max_length=100, blank=True, null=True)
-    cep = models.CharField(max_length=9)
-    localidade = models.CharField(max_length=100)
-    sigla_federacao = models.CharField(max_length=2)
 
 class Imovel(models.Model):
 
@@ -65,7 +57,16 @@ class Imovel(models.Model):
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE) # representa o dono do imovel
     valor_original = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=15, choices=STATUS_CHOICES)
-    endereco = models.ForeignKey(EnderecoImovel, on_delete=models.SET_NULL, null=True)
+
+class EnderecoImovel(models.Model):
+    bairro = models.CharField(max_length=100)
+    logradouro = models.CharField(max_length=255)
+    numero = models.CharField(max_length=10)
+    complemento = models.CharField(max_length=100, blank=True, null=True)
+    cep = models.CharField(max_length=9)
+    localidade = models.CharField(max_length=100)
+    sigla_federacao = models.CharField(max_length=2)
+    imovel = models.OneToOneField(Imovel, on_delete=models.CASCADE, related_name="endereco")
     
 class FotosImovel(models.Model):
     imovel = models.ForeignKey(Imovel, on_delete=models.CASCADE)
@@ -123,10 +124,10 @@ class Venda(models.Model):
     imovel = models.ForeignKey(Imovel, on_delete=models.PROTECT)
     comprador = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='comprador')
     vendedor = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='vendedor')
-    preco_pedido = models.DecimalField(max_digits=12, decimal_places=2)
-    preco_final = models.DecimalField(max_digits=12, decimal_places=2)
+    preco_pedido = models.DecimalField(max_digits=12, decimal_places=2, null=True)
+    preco_final = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     data_publicacao = models.DateField(auto_now_add=True)
     data_fechamento = models.DateField(null=True)
     observacoes = models.TextField()
-    status = models.CharField(max_length=15, choices=STATUS_VENDA)
+    status = models.CharField(max_length=15, choices=STATUS_VENDA, default='executando')
     
