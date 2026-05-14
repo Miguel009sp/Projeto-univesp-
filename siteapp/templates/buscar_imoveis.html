@@ -26,13 +26,33 @@
 
         <div class="mb-3">
             <label class="form-label">Valor máximo (R$)</label>
-            <input type="number" class="form-control" name="valor_maximo">
+            <!-- Alterado para type="text" e adicionada a máscara oninput -->
+            <input type="text" class="form-control" name="valor_maximo" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
         </div>
 
         <button class="btn btn-secondary">Buscar</button>
         <a href="{% url 'home' %}" class="btn btn-light">Voltar</a>
     </form>
 
+    <!-- Script responsável por formatar o dinheiro com pontos e vírgula em tempo real -->
+    <script>
+    function mascaraMoeda(campo) {
+        let valor = campo.value;
+        
+        // Remove tudo o que não for número do teclado
+        valor = valor.replace(/\D/g, "");
+        
+        // Insere a vírgula dos centavos
+        valor = (valor / 100).toFixed(2) + "";
+        valor = valor.replace(".", ",");
+        
+        // Insere os pontos indicadores de milhares
+        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        
+        // Mantém os números e adiciona o R$ na frente
+        campo.value = "R$ " + valor;
+    }
+    </script>
+
 </body>
 </html>
-

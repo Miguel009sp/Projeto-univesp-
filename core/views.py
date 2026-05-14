@@ -1,74 +1,122 @@
+from django.shortcuts import render # Import necessário para o HTML
 from rest_framework.generics import ListCreateAPIView, ListAPIView
 from rest_framework import viewsets
-
 from .models import *
 from .serializers import *
 
-# lista todos os usarios (PEssoa Fisica e Pessoa Jurica, 
-# mas sem suas informacoes especificas)
+# Função auxiliar para filtrar preços
+def obter_preco_filtrado(request):
+    valor_procurado = (
+        request.query_params.get('valor_maximo') or 
+        request.query_params.get('preco') or 
+        request.query_params.get('valor') or
+        request.GET.get('valor_maximo')
+    )
+    if valor_procurado:
+        try:
+            valor_limpo = str(valor_procurado).replace('R$', '').replace('.', '').replace(',', '.').strip()
+            return float(valor_limpo)
+        except ValueError:
+            return None
+    return None
+
+# --- VIEWS DE USUÁRIOS ---
 class ListAllUsers(ListAPIView):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
-# Lista ou cria pessoa fisica
 class ListCreatePessoaFisica(ListCreateAPIView):
     queryset = PessoaFisica.objects.all()
     serializer_class = PessoaFisicaSerializer
     
-# Lista ou cria pessoa juridica
 class ListCreatePessoaJuridica(ListCreateAPIView):
     queryset = PessoaJuridica.objects.all()
     serializer_class = PessoaJuridicaSerializer
 
-# Lista todos os telefones dos usuarios (sem filtro)
-# Registra os telefones de um usuario
 class ListCreateTelefone(ListCreateAPIView):
     queryset = Telefone.objects.all()
     serializer_class = TelefoneSerializer
 
-# Lista todos os enderecos dos usuarios (sem filtro)
-# Registra os enderecos de um usuario
 class ListCreateEnderecoUsuario(ListCreateAPIView):
     queryset = EnderecoUsuario.objects.all()
     serializer_class = EnderecoUsuarioSerializer
 
-# Imovel
+# --- VIEWSETS DE IMÓVEIS ---
 class FotosImovelViewSet(viewsets.ModelViewSet):
     queryset = FotosImovel.objects.all()
     serializer_class = FotosImovelSerializer
 
 class TerrenoViewSet(viewsets.ModelViewSet):
-    queryset = Terreno.objects.all()
     serializer_class = TerrenoSerializer
+    def get_queryset(self):
+        queryset = Terreno.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class CasaViewSet(viewsets.ModelViewSet):
-    queryset = Casa.objects.all()
     serializer_class = CasaSerializer
+    def get_queryset(self):
+        queryset = Casa.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class ApartamentoViewSet(viewsets.ModelViewSet):
-    queryset = DetalhesApartamento.objects.all()
     serializer_class = DetalhesApartamentoSerializer
+    def get_queryset(self):
+        queryset = DetalhesApartamento.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class SalaComercialViewSet(viewsets.ModelViewSet):
-    queryset = SalaComercial.objects.all()
     serializer_class = SalaComercialSerializer
+    def get_queryset(self):
+        queryset = SalaComercial.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class GalpaoComercialViewSet(viewsets.ModelViewSet):
-    queryset = GalpaoComercial.objects.all()
     serializer_class = GalpaoComercialSerializer
+    def get_queryset(self):
+        queryset = GalpaoComercial.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class SitioViewSet(viewsets.ModelViewSet):
-    queryset = Sitio.objects.all()
     serializer_class = SitioSerializer
+    def get_queryset(self):
+        queryset = Sitio.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
 class ChacaraViewSet(viewsets.ModelViewSet):
-    queryset = Chacara.objects.all()
     serializer_class = ChacaraSerializer
+    def get_queryset(self):
+        queryset = Chacara.objects.all()
+        preco = obter_preco_filtrado(self.request)
+        if preco:
+            queryset = queryset.filter(valor_original__lte=preco)
+        return queryset
 
-# Venda
 class VendaViewSet(viewsets.ModelViewSet):
     queryset = Venda.objects.all()
     serializer_class = VendaSerializer
+
+# --- FUNÇÃO PARA RENDERIZAR O SITE (O QUE ESTAVA FALTANDO) ---
+def index(request):
+    return render(request, 'core/index.html')
+
 
     
 

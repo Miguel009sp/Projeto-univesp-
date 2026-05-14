@@ -1,5 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings 
+from django.conf.urls.static import static 
 
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import (
@@ -7,32 +9,43 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views import *
-
+# Importa todas as views do seu arquivo views.py (incluindo a função index)
+from .views import * # 1. Configuração do Router para os ViewSets de Imóveis
 router = DefaultRouter()
-router.register(r'terrenos', viewset=TerrenoViewSet)
-router.register(r'casas', viewset=CasaViewSet)
-router.register(r'salas-comerciais', viewset=SalaComercialViewSet)
-router.register(r'galpoes-comerciais', viewset=GalpaoComercialViewSet)
-router.register(r'sitios', viewset=SitioViewSet)
-router.register(r'chacaras', viewset=ChacaraViewSet)
-router.register(r'apartamentos', viewset=ApartamentoViewSet)
+router.register(r'terrenos', viewset=TerrenoViewSet, basename='terreno')
+router.register(r'casas', viewset=CasaViewSet, basename='casa')
+router.register(r'salas-comerciais', viewset=SalaComercialViewSet, basename='salacomercial')
+router.register(r'galpoes-comerciais', viewset=GalpaoComercialViewSet, basename='galpaocomercial')
+router.register(r'sitios', viewset=SitioViewSet, basename='sitio')
+router.register(r'chacaras', viewset=ChacaraViewSet, basename='chacara')
+router.register(r'apartamentos', viewset=ApartamentoViewSet, basename='apartamento')
 router.register(r'vendas', viewset=VendaViewSet)
 router.register(r'fotos-imovel', viewset=FotosImovelViewSet)
 
 urlpatterns = [   
-    path('', include(router.urls)),
+    # Painel Administrativo
+    path('admin/', admin.site.urls),
 
-    # jwt token
-    path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # --- ROTA DO SITE (FRONT-END) ---
+    # Quando você acessar http://127.0.0.1:8000/ ele chamara a função index
+    path('', index, name='index'), 
 
-    # usuario comum (sem admin) url (GET e POST)
-    path('pessoa-fisica', ListCreatePessoaFisica.as_view()),
-    path('pessoa-juridica', ListCreatePessoaJuridica.as_view()),
+    # --- ROTAS DA API (BACK-END / THUNDER CLIENT) ---
+    # Todas as rotas do router agora precisam do prefixo api/
+    path('api/', include(router.urls)),
 
-    # todos os usuarios (lista sem informacao de pessoa fisica ou juridica - GET)
-    path('usuarios', ListAllUsers.as_view()),
-    path('telefones', ListCreateTelefone.as_view()),
-    path('enderecos-usuario', ListCreateEnderecoUsuario.as_view()),
+    # Endpoints de Autenticação JWT
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+    # Endpoints de Usuários e Cadastros
+    path('api/pessoa-fisica/', ListCreatePessoaFisica.as_view()),
+    path('api/pessoa-juridica/', ListCreatePessoaJuridica.as_view()),
+    path('api/usuarios/', ListAllUsers.as_view()),
+    path('api/telefones/', ListCreateTelefone.as_view()),
+    path('api/enderecos-usuario/', ListCreateEnderecoUsuario.as_view()),
 ]
+
+# Configuração para exibir as fotos dos imóveis no navegador
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

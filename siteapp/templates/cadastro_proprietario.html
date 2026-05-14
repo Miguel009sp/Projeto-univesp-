@@ -24,12 +24,14 @@
 
         <div class="mb-3">
             <label class="form-label">CPF</label>
-            <input type="text" class="form-control" name="cpf" required>
+            <!-- Adicionado limitador de tamanho, placeholder e gatilho de máscara -->
+            <input type="text" class="form-control" name="cpf" oninput="mascaraCPF(this)" maxlength="14" placeholder="000.000.000-00" required>
         </div>
 
         <div class="mb-3">
             <label class="form-label">Telefone</label>
-            <input type="text" class="form-control" name="telefone" required>
+            <!-- Adicionado limitador de tamanho, placeholder e gatilho de máscara -->
+            <input type="text" class="form-control" name="telefone" oninput="mascaraTelefone(this)" maxlength="15" placeholder="(00) 00000-0000" required>
         </div>
 
         <div class="mb-3">
@@ -40,6 +42,24 @@
         <button class="btn btn-success">Salvar</button>
         <a href="{% url 'home' %}" class="btn btn-secondary">Voltar</a>
     </form>
+
+    <!-- Scripts de formatação automática em tempo real -->
+    <script>
+    function mascaraCPF(campo) {
+        let valor = campo.value.replace(/\D/g, ""); // Remove letras e símbolos
+        valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Adiciona o primeiro ponto
+        valor = valor.replace(/(\d{3})(\d)/, "$1.$2"); // Adiciona o segundo ponto
+        valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2"); // Adiciona o hífen
+        campo.value = valor;
+    }
+
+    function mascaraTelefone(campo) {
+        let valor = campo.value.replace(/\D/g, ""); // Remove letras e símbolos
+        valor = valor.replace(/^(\d{2})(\d)/g, "($1) $2"); // Adiciona os parênteses do DDD
+        valor = valor.replace(/(\d{5})(\d)/, "$1-$2"); // Adiciona o hífen do celular
+        campo.value = valor;
+    }
+    </script>
 
 </body>
 </html>
