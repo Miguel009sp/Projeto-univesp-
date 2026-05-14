@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastrar Imóvel</title>
-    <!-- Estilização manual garantida caso o Bootstrap falhe ao carregar -->
     <style>
         body {
             font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -29,27 +28,65 @@
             margin-bottom: 8px;
             font-size: 16px;
             color: #212529;
+            font-weight: 500;
         }
         input[type="text"], select {
             width: 100%;
-            padding: 6px 12px;
+            padding: 10px 12px;
             font-size: 16px;
             font-weight: 400;
             line-height: 1.5;
             color: #212529;
             background-color: #fff;
-            background-clip: padding-box;
             border: 1px solid #ced4da;
-            border-radius: 4px;
+            border-radius: 6px;
             box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
         input[type="text"]:focus, select:focus {
             border-color: #86b7fe;
             outline: 0;
             box-shadow: 0 0 0 4px rgba(13, 110, 253, .25);
         }
+        
+        .upload-container {
+            position: relative;
+            width: 100%;
+        }
+        .input-file-oculto {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 2;
+        }
+        .botao-upload-custom {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 12px;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 6px;
+            color: #495057;
+            font-size: 15px;
+            text-align: center;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+        .upload-container:hover .botao-upload-custom {
+            border-color: #0d6efd;
+            background-color: #e9ecef;
+            color: #0d6efd;
+        }
+
         .btn-container {
-            margin-top: 25px;
+            margin-top: 30px;
             display: flex;
             gap: 10px;
         }
@@ -63,9 +100,10 @@
             cursor: pointer;
             user-select: none;
             border: 1px solid transparent;
-            padding: 6px 24px;
+            padding: 10px 30px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 6px;
+            transition: background-color 0.2s;
         }
         .btn-salvar {
             color: #fff;
@@ -83,13 +121,23 @@
         .btn-voltar:hover {
             background-color: #5c636a;
         }
+        .nome-arquivo {
+            display: block;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #6c757d;
+            font-style: italic;
+        }
+        .campo-automatico {
+            background-color: #f1f3f5 !important;
+        }
     </style>
 </head>
 
 <body>
     <h2>Cadastrar Imóvel</h2>
 
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="form-group">
@@ -103,18 +151,66 @@
         </div>
 
         <div class="form-group">
-            <label>Endereço</label>
-            <input type="text" name="endereco">
-        </div>
-
-        <div class="form-group">
             <label>Valor do imóvel</label>
             <input type="text" name="valor_imovel" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
         </div>
 
         <div class="form-group">
             <label>Proprietário</label>
-            <input type="text" placeholder="Nome ou CPF do proprietário">
+            <input type="text" name="proprietario_documento" oninput="mascaraCPFouCNPJ(this)" placeholder="Digite apenas os números do CPF ou CNPJ" maxlength="18">
+        </div>
+
+        <div class="form-group">
+            <label>CEP</label>
+            <input type="text" name="cep" id="cep" oninput="mascaraCEP(this)" onblur="buscarEnderecoPeloCEP(this.value)" placeholder="00000-000" maxlength="9">
+            <small id="erro-cep" style="color: red; display: none; margin-top: 5px; font-size: 13px;"></small>
+        </div>
+
+        <div class="form-group">
+            <label>Logradouro (Rua / Avenida)</label>
+            <input type="text" name="logradouro" id="logradouro" class="campo-automatico" placeholder="Aguardando CEP..." readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Número</label>
+            <input type="text" name="numero" id="numero" placeholder="Digite o número manualmente">
+        </div>
+
+        <div class="form-group">
+            <label>Bairro</label>
+            <input type="text" name="bairro" id="bairro" class="campo-automatico" placeholder="Aguardando CEP..." readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Cidade</label>
+            <input type="text" name="cidade" id="cidade" class="campo-automatico" placeholder="Aguardando CEP..." readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Estado (Sigla)</label>
+            <input type="text" name="estado" id="estado" class="campo-automatico" placeholder="EX: SP" maxlength="2" style="text-transform: uppercase;" readonly>
+        </div>
+
+        <div class="form-group">
+            <label>Foto Principal do Imóvel</label>
+            <div class="upload-container">
+                <input type="file" name="foto_principal" class="input-file-oculto" accept="image/*" onchange="atualizarNome(this, 'txt-foto-principal')">
+                <div class="botao-upload-custom">
+                    📷 Selecionar Foto Principal
+                </div>
+            </div>
+            <span id="txt-foto-principal" class="nome-arquivo">Nenhum arquivo selecionado</span>
+        </div>
+
+        <div class="form-group">
+            <label>Fotos adicionais para a Galeria</label>
+            <div class="upload-container">
+                <input type="file" name="fotos_galeria" class="input-file-oculto" accept="image/*" multiple onchange="atualizarNome(this, 'txt-fotos-galeria')">
+                <div class="botao-upload-custom">
+                    🖼️ Selecionar Múltiplas Fotos
+                </div>
+            </div>
+            <span id="txt-fotos-galeria" class="nome-arquivo">Nenhum arquivo selecionado</span>
         </div>
 
         <div class="btn-container">
@@ -137,7 +233,120 @@
         valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
         campo.value = "R$ " + valor;
     }
-    </script>
 
+    function mascaraCEP(campo) {
+        let valor = campo.value.replace(/\D/g, "");
+        if (valor.length > 5) {
+            valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+        }
+        campo.value = valor;
+    }
+
+    function mascaraCPFouCNPJ(campo) {
+        let valor = campo.value.replace(/\D/g, ""); 
+        
+        if (valor.length <= 11) {
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+            valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        } else {
+            valor = valor.substring(0, 14); 
+            valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+            valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+            valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");
+            valor = valor.replace(/(\d{4})(\d)/, "$1-$2");
+        }
+        campo.value = valor;
+    }
+
+    function buscarEnderecoPeloCEP(cepValor) {
+        const cepLimpo = cepValor.replace(/\D/g, "");
+        const erroMsg = document.getElementById('erro-cep');
+        erroMsg.style.display = 'none';
+
+        if (cepLimpo.length === 8) {
+            document.getElementById('logradouro').value = "Buscando...";
+            document.getElementById('bairro').value = "Buscando...";
+            document.getElementById('cidade').value = "Buscando...";
+            document.getElementById('estado').value = "..";
+
+            // Correção da URL adicionando o protocolo HTTPS obrigatório
+            fetch(`viacep.com.br{cepLimpo}/json/`)
+                .then(response => response.json())
+                .then(dados => {
+                    if (!dados.erro) {
+                        preencherCampos(dados.logradouro, dados.bairro, dados.localidade, dados.uf);
+                    } else {
+                        buscarFallbackAwesomeAPI(cepLimpo);
+                    }
+                })
+                .catch(() => {
+                    buscarFallbackAwesomeAPI(cepLimpo);
+                });
+        }
+    }
+
+    function buscarFallbackAwesomeAPI(cep) {
+        // Correção da URL adicionando o protocolo HTTPS obrigatório
+        fetch(`awesomeapi.com.br{cep}`)
+            .then(res => res.json())
+            .then(dados => {
+                if (dados.address) {
+                    preencherCampos(dados.address, dados.district, dados.city, dados.state);
+                } else {
+                    limparCamposEndereco("CEP não localizado nos servidores de busca.");
+                }
+            })
+            .catch(() => {
+                limparCamposEndereco("Os servidores de CEP estão instáveis. Digite os dados.");
+                liberarCamposParaDigitacaoManual();
+            });
+    }
+
+    function preencherCampos(rua, bairro, city, uf) {
+        document.getElementById('logradouro').value = rua;
+        document.getElementById('bairro').value = bairro;
+        document.getElementById('cidade').value = city;
+        document.getElementById('estado').value = uf;
+        document.getElementById('numero').focus();
+    }
+
+    function liberarCamposParaDigitacaoManual() {
+        document.getElementById('logradouro').removeAttribute('readonly');
+        document.getElementById('bairro').removeAttribute('readonly');
+        document.getElementById('cidade').removeAttribute('readonly');
+        document.getElementById('estado').removeAttribute('readonly');
+        document.getElementById('logradouro').classList.remove('campo-automatico');
+        document.getElementById('bairro').classList.remove('campo-automatico');
+        document.getElementById('cidade').classList.remove('campo-automatico');
+        document.getElementById('estado').classList.remove('campo-automatico');
+    }
+
+    function limparCamposEndereco(mensagem) {
+        const erroMsg = document.getElementById('erro-cep');
+        erroMsg.innerText = mensagem;
+        erroMsg.style.display = 'block';
+        
+        document.getElementById('logradouro').value = "";
+        document.getElementById('bairro').value = "";
+        document.getElementById('cidade').value = "";
+        document.getElementById('estado').value = "";
+    }
+
+    function atualizarNome(input, idTexto) {
+        const texto = document.getElementById(idTexto);
+        if (input.files && input.files.length > 0) {
+            if (input.files.length === 1) {
+                texto.innerText = "✓ Arquivo: " + input.files[0].name;
+            } else {
+                texto.innerText = "✓ " + input.files.length + " arquivos selecionados";
+            }
+            texto.style.color = "#198754";
+        } else {
+            texto.innerText = "Nenhum arquivo selecionado";
+            texto.style.color = "#6c757d";
+        }
+    }
+    </script>
 </body>
 </html>
