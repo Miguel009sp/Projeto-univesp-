@@ -73,9 +73,6 @@ TEMPLATES = [
 WSGI_APPLICATION = 'projeto.wsgi.application'
 
 # --- CONFIGURAÇÃO DE BANCO DE DADOS ---
-# Alterado para SQLite para evitar o erro de conexão (10061)
-# O SQLite cria um arquivo local chamado db.sqlite3 automaticamente.
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -83,23 +80,22 @@ DATABASES = {
     }
 }
 
-# SE QUISER USAR MYSQL, COMENTE O BLOCO ACIMA E DESCOMENTE ESTE ABAIXO:
-# (Certifique-se de que o MySQL/XAMPP esteja ligado)
-"""
-DATABASES = {
+# --- CONFIGURAÇÃO DE CACHE E SISTEMA DE SESSÕES PREMIUM CORRIGIDO ---
+# Configura o backend correto de memória interna do Django para velocidade máxima
+CACHES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'projeto_univesp',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
-        'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'bragatto-imoveis-unique-cache',
     }
 }
-"""
+
+# Direciona as sessões para o cache em memória RAM, poupando escritas no arquivo SQLite
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
+
+# Mantém o armazenamento das mensagens estável e veloz
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
+
 
 # Validação de senhas
 AUTH_PASSWORD_VALIDATORS = [
@@ -109,10 +105,11 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Configurações do REST Framework
+# Configurações do REST Framework (Ajustado para aceitar formulário tradicional e JWT)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework.authentication.SessionAuthentication',  # Destrava o login tradicional HTML
+        'rest_framework_simplejwt.authentication.JWTAuthentication',  # Mantém a API funcionando para o Front
     )
 }
 

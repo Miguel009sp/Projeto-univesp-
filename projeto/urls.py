@@ -9,12 +9,12 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    # Rotas do site
+    # Rotas da Interface do Site (Login, Home, Cadastro de Imóveis)
     path('', include('siteapp.urls')),
 
-    # Painel admin
-    path('admin/', admin.site.urls),
+    # Painel Nativo de Administração do Django (Se necessário)
+    path('django-admin/', admin.site.urls), # Mudado para evitar conflito com seu app
 
-    # Rotas da API
-    path('', include('core.urls')),
+    # Rotas de Endpoints da API REST (Isoladas com o prefixo 'api/')
+    path('api/', include('core.urls')),
 ]

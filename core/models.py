@@ -1,21 +1,16 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+# --- USUÁRIOS ---
 
-# nao e necessario colocar `email`e `senha`  pois o AbstractUser
-# ja faz isso
-# foto de perfil -> so salvamos o path da imagem
-# nome -> pelo `username` nativo do abstract user ser unique por padrao,
-# criar um campo nome e uma boa opcao
 class Usuario(AbstractUser):
-
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('customer', 'Customer')
     )
     
     nome = models.CharField(max_length=255)
-    foto = models.ImageField(upload_to='usuario/profile', max_length=255, null=True)
+    foto = models.ImageField(upload_to='usuario/profile', max_length=255, null=True, blank=True)
     role = models.CharField(max_length=15, choices=ROLE_CHOICES)
 
 class PessoaFisica(Usuario):
@@ -41,22 +36,32 @@ class EnderecoUsuario(models.Model):
     sigla_federacao = models.CharField(max_length=2)
     user = models.ForeignKey(Usuario, on_delete=models.CASCADE)
 
-# imoveis
+
+# --- IMÓVEIS ---
 
 class Imovel(models.Model):
-
     STATUS_CHOICES = (
-        ('oculto', 'Oculto'),
+        ('disponivel', 'Disponível'),
+        ('indisponivel', 'Indisponível'),
         ('vendido', 'Vendido'),
-        ('disponivel', 'Disponivel'),
+        ('oculto', 'Oculto'),
     )
 
     nome = models.CharField(max_length=255)
-    descricao = models.TextField()
-    foto_principal = models.ImageField(upload_to='imovel/main_pic', max_length=255, null=True)
-    user = models.ForeignKey(Usuario, on_delete=models.CASCADE) # representa o dono do imovel
+    descricao = models.TextField(blank=True, null=True)
+    foto_principal = models.ImageField(upload_to='imovel/main_pic', max_length=255, null=True, blank=True)
+    
+    # Representa o dono do imóvel (Usuário do sistema)
+    user = models.ForeignKey(Usuario, on_delete=models.CASCADE) 
+    
+    # Campo para salvar o CPF/CNPJ digitado no cadastro/edição
+    proprietario_documento = models.CharField(max_length=18, null=True, blank=True)
+    
     valor_original = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='disponivel')
+
+    def __str__(self):
+        return self.nome
 
 class EnderecoImovel(models.Model):
     bairro = models.CharField(max_length=100)
@@ -69,17 +74,19 @@ class EnderecoImovel(models.Model):
     imovel = models.OneToOneField(Imovel, on_delete=models.CASCADE, related_name="endereco")
     
 class FotosImovel(models.Model):
-    imovel = models.ForeignKey(Imovel, on_delete=models.CASCADE)
+    imovel = models.ForeignKey(Imovel, on_delete=models.CASCADE, related_name="galeria")
     caminho = models.ImageField(upload_to='imoveis/galeria', max_length=255)
-    
+
+# Especializações do Imóvel
+
 class Terreno(Imovel):
     metragem = models.DecimalField(max_digits=10, decimal_places=2)
 
 class Casa(Imovel):
-    area_terreno = models.DecimalField(max_digits=10, decimal_places=2)
-    area_construcao = models.DecimalField(max_digits=10, decimal_places=2)
-    numero_dormitorios = models.IntegerField()
-    numero_suites = models.IntegerField()
+    area_terreno = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    area_construcao = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    numero_dormitorios = models.IntegerField(default=0)
+    numero_suites = models.IntegerField(default=0)
 
 class Apartamento(Imovel):
     area_util = models.DecimalField(max_digits=10, decimal_places=2)
@@ -105,16 +112,10 @@ class Chacara(Imovel):
     area_construida = models.DecimalField(max_digits=10, decimal_places=2)
     numero_casas = models.IntegerField()
 
-# registro de venda
-# a venda real nao pode ser feita por essa aplicacao por motivos
-# de complexidade, lgpd e a necessidade de integracao com API de pagamentos
-# confivavel. 
-# essa tabela servira apenas para ter-se um historico de vendas realizadas.
 
-# PROTECT: se houver exclusao da entidade referenciada, 
-# o PROTECT impedira para poder manter o historico.
+# --- REGISTRO DE VENDA ---
+
 class Venda(models.Model):
-
     STATUS_VENDA = (
         ('finalizada', 'Finalizada'),
         ('cancelada', 'Cancelada'),
@@ -122,12 +123,11 @@ class Venda(models.Model):
     )
 
     imovel = models.ForeignKey(Imovel, on_delete=models.PROTECT)
-    comprador = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='comprador')
-    vendedor = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='vendedor')
+    comprador = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='compras')
+    vendedor = models.ForeignKey(Usuario, on_delete=models.PROTECT, related_name='vendas')
     preco_pedido = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     preco_final = models.DecimalField(max_digits=12, decimal_places=2, null=True)
     data_publicacao = models.DateField(auto_now_add=True)
-    data_fechamento = models.DateField(null=True)
-    observacoes = models.TextField()
+    data_fechamento = models.DateField(null=True, blank=True)
+    observacoes = models.TextField(blank=True)
     status = models.CharField(max_length=15, choices=STATUS_VENDA, default='executando')
-    
