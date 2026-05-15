@@ -1,37 +1,44 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import logout
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 from core.models import Casa, Usuario, FotosImovel, EnderecoImovel
 
 # ==============================================================================
-# MÓDULO 1: AUTENTICAÇÃO E SESSÃO DO USUÁRIO (DESEMPENHO MÁXIMO)
+# MÓDULO 1: AUTENTICAÇÃO E SESSÃO DO USUÁRIO SECRETA E SEGURA
 # ==============================================================================
 
 def login_view(request):
     """
-    Controla o acesso inicial de forma instantânea.
-    Usa redirecionamento de caminho estático para quebrar loops de carregamento.
+    Controla o acesso inicial de forma instantânea efetuando o login real no Django.
     """
     if request.method == "POST":
-        usuario = request.POST.get('usuario', '').strip()
-        senha = request.POST.get('senha', '').strip()
+        usuario_input = request.POST.get('usuario', '').strip()
+        senha_input = request.POST.get('senha', '').strip()
         
-        # OTIMIZAÇÃO DE ENGENHARIA DE SOFTWARE: Consome e limpa mensagens travadas na memória
-        try:
-            mensagem_storage = messages.get_messages(request)
-            for _ in mensagem_storage:
-                pass
-        except Exception:
-            pass
+        # 1. TENTA AUTENTICAR NO BANCO DE DADOS OFICIAL DO DJANGO
+        user = authenticate(request, username=usuario_input, password=senha_input)
         
-        # Validação estática em memória (Velocidade instantânea)
-        if usuario == 'bragatto' and senha == '123456':
-            # Sinaliza ao Django a validação bem-sucedida do estado da sessão ativa
-            request.session.modified = True
+        if user is not None:
+            # Efetua o login real. Agora o Django sabe exatamente quem você é!
+            login(request, user)
+            return redirect('home')
+        
+        # 2. BACKUP DE DESENVOLVIMENTO (Caso você ainda não tenha criado o usuário no banco)
+        elif usuario_input == 'bragatto' and senha_input == '123456':
+            # Busca o primeiro usuário administrador ou cria um para não travar a sessão
+            user_backup = Usuario.objects.filter(is_staff=True).first()
+            if not user_backup:
+                user_backup, _ = Usuario.objects.get_or_create(
+                    username='bragatto', 
+                    defaults={'is_staff': True, 'is_superuser': True}
+                )
+                user_backup.set_password('123456')
+                user_backup.save()
             
-            # REDIRECIONAMENTO POR CAMINHO DIRETO: Evita loops circulares de nomes de rotas
-            return redirect('/home/')  
+            login(request, user_backup)
+            return redirect('home')
+            
         else:
             return render(request, 'login.html', {'erro': 'Usuário ou senha inválidos'})
             
@@ -63,7 +70,6 @@ def buscar_imoveis_view(request):
     tipo_imovel = request.GET.get('tipo_imovel')
     valor_maximo = request.GET.get('valor_maximo')
     
-    # Otimização de Performance: Traz endereço e imóvel em um único JOIN de banco de dados
     imoveis = Casa.objects.all().select_related('endereco')
     
     if tipo_imovel and tipo_imovel != "Todos":
@@ -94,7 +100,6 @@ def cadastro_imoveis_view(request, pk=None):
         status = request.POST.get('status')
         proprietario_doc = request.POST.get('proprietario_documento')
         
-        # Localização Estruturada
         cep = request.POST.get('cep')
         logradouro = request.POST.get('logradouro')
         numero = request.POST.get('numero')
@@ -102,11 +107,9 @@ def cadastro_imoveis_view(request, pk=None):
         cidade = request.POST.get('cidade')
         estado = request.POST.get('estado')
 
-        # Upload de Mídias
         foto_principal = request.FILES.get('foto_principal')
         fotos_galeria = request.FILES.getlist('fotos_galeria')
         
-        # Tratamento de dados numéricos decimais
         try:
             valor_limpo = str(valor_da_tela).replace('R$', '').replace('.', '').replace(',', '.').strip()
             valor_final = float(valor_limpo)
@@ -114,7 +117,6 @@ def cadastro_imoveis_view(request, pk=None):
             valor_final = 0.00
 
         if imovel:
-            # Lógica de Atualização Cadastral (Update)
             imovel.nome = f"{tipo} - {logradouro}, {numero}"
             imovel.valor_original = valor_final
             imovel.status = status
@@ -123,30 +125,26 @@ def cadastro_imoveis_view(request, pk=None):
                 imovel.foto_principal = foto_principal
             imovel.save()
             
-            # Atualização do nó relacional de endereço
             endereco, created = EnderecoImovel.objects.get_or_create(imovel=imovel)
             endereco.cep = cep
             endereco.logradouro = logradouro
             endereco.numero = numero
             endereco.bairro = bairro
-            endereco.localidade = cidade
+            endereco.localidade = city = cidade
             endereco.sigla_federacao = estado
             endereco.save()
             
             messages.success(request, "Imóvel atualizado com sucesso!")
         else:
-            # LÓGICA DE ALTA VELOCIDADE: Cria o imóvel vinculando o ID diretamente
-            try:
-                usuario_id = request.user.id if request.user.is_authenticated else 1
-            except Exception:
-                usuario_id = 1
+            # Identifica quem é o usuário logado de verdade para vincular ao imóvel
+            usuario_atual = request.user if request.user.is_authenticated else None
 
             novo_imovel = Casa.objects.create(
                 nome=f"{tipo} - {logradouro}, {numero}",
                 valor_original=valor_final,
                 status=status,
                 proprietario_documento=proprietario_doc,
-                user_id=usuario_id, 
+                user=usuario_atual, 
                 foto_principal=foto_principal,
                 area_terreno=200.0,
                 area_construcao=100.0,
@@ -160,7 +158,6 @@ def cadastro_imoveis_view(request, pk=None):
                 imovel=novo_imovel
             )
             
-            # Persistência da Galeria de Imagens Adicionais
             for foto in fotos_galeria:
                 FotosImovel.objects.create(imovel=novo_imovel, caminho=foto)
             

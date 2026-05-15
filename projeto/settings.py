@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'corsheaders',
 ]
 
-# Modelo de usuário personalizado (conforme seu projeto no GitHub)
+# Modelo de usuário personalizado
 AUTH_USER_MODEL = 'core.Usuario'
 
 MIDDLEWARE = [
@@ -80,20 +80,12 @@ DATABASES = {
     }
 }
 
-# --- CONFIGURAÇÃO DE CACHE E SISTEMA DE SESSÕES PREMIUM CORRIGIDO ---
-# Configura o backend correto de memória interna do Django para velocidade máxima
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'bragatto-imoveis-unique-cache',
-    }
-}
+# --- CONFIGURAÇÃO DE SESSÕES AJUSTADA PARA VELOCIDADE LOCAL ---
+# Conecta as sessões diretamente ao banco padrão SQLite.
+# Isso evita o travamento de comunicação entre múltiplos processos do VS Code (Threads).
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 
-# Direciona as sessões para o cache em memória RAM, poupando escritas no arquivo SQLite
-SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
-SESSION_CACHE_ALIAS = 'default'
-
-# Mantém o armazenamento das mensagens estável e veloz
+# Armazenamento das mensagens via cookies estável para o ambiente de testes
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 
@@ -128,9 +120,10 @@ USE_TZ = True
 
 # Arquivos Estáticos (CSS, JS)
 STATIC_URL = 'static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "siteapp" / "static",
-]
+
+# Mantido vazio para evitar redundância. O Django busca automaticamente as pastas
+# "static" que estiverem dentro das aplicações ('siteapp' e 'core') por causa do APP_DIRS=True.
+STATICFILES_DIRS = []
 
 # Configurações de Mídia (Fotos dos Imóveis)
 MEDIA_URL = '/media/'

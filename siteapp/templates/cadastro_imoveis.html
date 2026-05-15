@@ -3,7 +3,7 @@
 <html lang="pt-br" class="notranslate">
 <head>
     <meta charset="UTF-8">
-    <meta name="google" content="notranslate"> <!-- EVITA TRADUÇÃO PARA JAPONÊS/MANDARIM -->
+    <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% if imovel %}Editar Imóvel{% else %}Cadastrar Imóvel{% endif %}</title>
     <style>
@@ -147,7 +147,7 @@
 <body class="notranslate">
     <h2>{% if imovel %}Editar Imóvel{% else %}Cadastrar Imóvel{% endif %}</h2>
 
-    <form method="post" enctype="multipart/form-data" id="form-imovel">
+    <form method="post" enctype="multipart/form-data" id="form-imovel" onsubmit="limparMascarasAntesDeEnviar(event)">
         {% csrf_token %}
 
         <div class="form-group">
@@ -171,12 +171,12 @@
 
         <div class="form-group">
             <label>Valor do imóvel</label>
-            <input type="text" name="valor_imovel" value="{{ imovel.valor_original|default:'' }}" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
+            <input type="text" name="valor_imovel" id="valor_imovel" value="{{ imovel.valor_original|default:'' }}" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
         </div>
 
         <div class="form-group">
             <label>Proprietário (CPF/CNPJ)</label>
-            <input type="text" name="proprietario_documento" value="{{ imovel.proprietario_documento|default:'' }}" oninput="mascaraCPFouCNPJ(this)" placeholder="Digite apenas os números" maxlength="18">
+            <input type="text" name="proprietario_documento" id="proprietario_documento" value="{{ imovel.proprietario_documento|default:'' }}" oninput="mascaraCPFouCNPJ(this)" placeholder="000.000.000-00 ou 00.000.000/0000-00" maxlength="18">
         </div>
 
         <div class="form-group">
@@ -213,44 +213,111 @@
         <div class="form-group">
             <label>Foto Principal {% if imovel %}(Deixe vazio para manter a atual){% endif %}</label>
             <div class="upload-container">
-                <input type="file" name="foto_principal" class="input-file-oculto" accept="image/*" onchange="atualizarNome(this, 'txt-foto-principal')">
+                <input type="file" name="foto_principal" id="foto_principal" class="input-file-oculto" accept="image/*" onchange="atualizarNomeArquivo(this)">
                 <div class="botao-upload-custom">
-                    📷 Selecionar Nova Foto Principal
+                    <span id="texto-upload">Selecionar Imagem</span>
                 </div>
             </div>
-            <span id="txt-foto-principal" class="nome-arquivo">
-                {% if imovel.foto_principal %} ✓ Já possui foto principal {% else %} Nenhum arquivo selecionado {% endif %}
-            </span>
+            <span class="nome-arquivo" id="nome-arquivo-selecionado"></span>
         </div>
 
-        <!-- CONTAINER DOS BOTÕES ORGANIZADOS LADO A LADO -->
         <div class="btn-container">
-            <button type="submit" class="btn btn-salvar">Salvar Alterações</button>
-            <a href="{% url 'home' %}" class="btn btn-voltar">Voltar</a>
-            
-            <!-- O BOTÃO DE EXCLUIR ABAIXO SÓ APARECE SE FOR EDIÇÃO (IMÓVEL JÁ EXISTENTE) -->
-            {% if imovel.pk %}
-                <button type="submit" formaction="{% url 'excluir_imovel' imovel.pk %}" class="btn btn-excluir" onclick="return confirm('Tem certeza absoluta que deseja apagar este imóvel permanentemente?');">
-                    🗑️ Excluir Imóvel
-                </button>
-            {% endif %}
+            <button type="submit" class="btn btn-salvar">Salvar</button>
+            <a href="javascript:history.back()" class="btn btn-voltar">Voltar</a>
         </div>
     </form>
 
     <script>
-    function mascaraMoeda(campo) {
-        let valor = campo.value.replace(/\D/g, "");
-        if (valor === "") return;
-        valor = (valor / 100).toFixed(2).replace(".", ",");
-        valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
-        campo.value = "R$ " + valor;
-    }
-    function atualizarNome(input, idTxt) {
-        const txt = document.getElementById(idTxt);
-        if (input.files && input.files.length > 0) {
-            txt.textContent = "✓ " + input.files[0].name;
+        function mascaraMoeda(campo) {
+            let valor = campo.value.replace(/\D/g, "");
+            valor = (valor / 100).toFixed(2) + "";
+            valor = valor.replace(".", ",");
+            valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+            campo.value = valor ? "R$ " + valor : "";
         }
-    }
+
+        function mascaraCPFouCNPJ(campo) {
+            let valor = campo.value.replace(/\D/g, "");
+            if (valor.length <= 11) {
+                valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+                valor = valor.replace(/(\d{3})(\d)/, "$1.$2");
+                valor = valor.replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            } else {
+                valor = valor.replace(/^(\d{2})(\d)/, "$1.$2");
+                valor = valor.replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3");
+                valor = valor.replace(/\.(\d{3})(\d)/, ".$1/$2");
+                valor = valor.replace(/(\d{4})(\d)/, "$1-$2");
+            }
+            campo.value = valor;
+        }
+
+        function mascaraCEP(campo) {
+            let valor = campo.value.replace(/\D/g, "");
+            valor = valor.replace(/^(\d{5})(\d)/, "$1-$2");
+            campo.value = valor;
+        }
+
+        function buscarEnderecoPeloCEP(cep) {
+            const cepLimpo = cep.replace(/\D/g, "");
+            const erroInput = document.getElementById("erro-cep");
+            
+            if (cepLimpo.length !== 8) return;
+
+            fetch(`https://viacep.com.br{cepLimpo}/json/`)
+                .then(response => response.json())
+                .then(dados => {
+                    if (dados.erro) {
+                        erroInput.textContent = "CEP não encontrado.";
+                        erroInput.style.display = "block";
+                        limparCamposEndereco();
+                    } else {
+                        erroInput.style.display = "none";
+                        document.getElementById("logradouro").value = dados.logradouro || "";
+                        document.getElementById("bairro").value = dados.bairro || "";
+                        document.getElementById("cidade").value = dados.localidade || "";
+                        document.getElementById("estado").value = dados.uf || "";
+                        document.getElementById("numero").focus();
+                    }
+                })
+                .catch(() => {
+                    erroInput.textContent = "Erro ao buscar o CEP.";
+                    erroInput.style.display = "block";
+                });
+        }
+
+        function limparCamposEndereco() {
+            document.getElementById("logradouro").value = "";
+            document.getElementById("bairro").value = "";
+            document.getElementById("cidade").value = "";
+            document.getElementById("estado").value = "";
+        }
+
+        function atualizarNomeArquivo(input) {
+            if (input.files && input.files.length > 0) {
+                const nomeArquivo = input.files[0].name;
+                document.getElementById("nome-arquivo-selecionado").textContent = "Arquivo: " + nomeArquivo;
+                document.getElementById("texto-upload").textContent = "Alterar Imagem";
+            }
+        }
+
+        function limparMascarasAntesDeEnviar(event) {
+            const campoValor = document.getElementById("valor_imovel");
+            const campoDocumento = document.getElementById("proprietario_documento");
+            const campoCep = document.getElementById("cep");
+
+            if (campoValor.value) {
+                let valorLimpo = campoValor.value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim();
+                campoValor.value = valorLimpo;
+            }
+
+            if (campoDocumento.value) {
+                campoDocumento.value = campoDocumento.value.replace(/\D/g, "");
+            }
+
+            if (campoCep.value) {
+                campoCep.value = campoCep.value.replace(/\D/g, "");
+            }
+        }
     </script>
 </body>
 </html>
