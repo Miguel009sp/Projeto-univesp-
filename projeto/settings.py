@@ -131,3 +131,14 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Tipo padrão de ID
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+import os
+from pathlib import Path
+
+# Caso já não tenha o BASE_DIR definido no topo do arquivo
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# URL que o navegador vai usar para acessar as mídias (ex: /media/imagem.jpg)
+MEDIA_URL = '/media/'
+
+# Caminho físico no seu computador onde os arquivos serão salvos
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

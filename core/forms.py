@@ -7,7 +7,16 @@ from .models import (
 
 # --- CAMPOS COMPARTILHADOS (HERDADOS DE IMOVEL) ---
 # Lista de campos padrão que todo imóvel possui para evitar repetição de código
-CAMPOS_BASE_IMOVEL = ['nome', 'descricao', 'foto_principal', 'valor_original', 'status']
+# ADICIONADOS: 'referencia' e 'proprietario_documento' para alinhar com o Model e o HTML
+CAMPOS_BASE_IMOVEL = [
+    'nome', 
+    'referencia', 
+    'descricao', 
+    'foto_principal', 
+    'proprietario_documento', 
+    'valor_original', 
+    'status'
+]
 
 
 # --- FORMULÁRIO DE ENDEREÇO ---

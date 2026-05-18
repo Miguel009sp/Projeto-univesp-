@@ -17,4 +17,5 @@ urlpatterns = [
 
     # Rotas de Endpoints da API REST (Isoladas com o prefixo 'api/')
     path('api/', include('core.urls')),
+    
 ]

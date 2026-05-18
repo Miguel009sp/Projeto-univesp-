@@ -48,6 +48,10 @@ class Imovel(models.Model):
     )
 
     nome = models.CharField(max_length=255)
+    
+    # NOVO CAMPO: Adicionado para guardar o número de referência do imóvel
+    referencia = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número de Referência")
+    
     descricao = models.TextField(blank=True, null=True)
     foto_principal = models.ImageField(upload_to='imovel/main_pic', max_length=255, null=True, blank=True)
     

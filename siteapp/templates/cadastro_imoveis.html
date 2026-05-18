@@ -24,6 +24,10 @@
             margin-bottom: 20px;
             max-width: 400px;
         }
+        /* Ajuste opcional para o campo de descrição ser mais largo */
+        .form-group.largo {
+            max-width: 600px;
+        }
         label {
             display: block;
             margin-bottom: 8px;
@@ -31,7 +35,8 @@
             color: #212529;
             font-weight: 500;
         }
-        input[type="text"], select {
+        /* Adicionado 'textarea' seletor para herdar os mesmos estilos */
+        input[type="text"], select, textarea {
             width: 100%;
             padding: 10px 12px;
             font-size: 16px;
@@ -44,10 +49,17 @@
             box-sizing: border-box;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
-        input[type="text"]:focus, select:focus {
+        /* Adicionado 'textarea:focus' */
+        input[type="text"]:focus, select:focus, textarea:focus {
             border-color: #86b7fe;
             outline: 0;
             box-shadow: 0 0 0 4px rgba(13, 110, 253, .25);
+        }
+        /* Estilo específico para a caixa de descrição */
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
         }
         
         .upload-container {
@@ -169,6 +181,12 @@
             </select>
         </div>
 
+        <!-- NOVO CAMPO: Número de Referência -->
+        <div class="form-group">
+            <label>Número de Referência</label>
+            <input type="text" name="referencia" id="referencia" value="{{ imovel.referencia|default:'' }}" placeholder="Ex: REF1020">
+        </div>
+
         <div class="form-group">
             <label>Valor do imóvel</label>
             <input type="text" name="valor_imovel" id="valor_imovel" value="{{ imovel.valor_original|default:'' }}" oninput="mascaraMoeda(this)" placeholder="R$ 0,00">
@@ -208,6 +226,12 @@
         <div class="form-group">
             <label>Estado (Sigla)</label>
             <input type="text" name="estado" id="estado" value="{{ imovel.endereco.sigla_federacao|default:'' }}" class="campo-automatico" placeholder="EX: SP" maxlength="2" style="text-transform: uppercase;" readonly>
+        </div>
+
+        <!-- NOVO CAMPO: Descrição do Imóvel -->
+        <div class="form-group largo">
+            <label>Descrição do Imóvel</label>
+            <textarea name="descricao" id="descricao" placeholder="Digite detalhes sobre o imóvel (quartos, suites, vaga de garagem, etc...)">{{ imovel.descricao|default:'' }}</textarea>
         </div>
 
         <div class="form-group">
@@ -263,7 +287,7 @@
             
             if (cepLimpo.length !== 8) return;
 
-            fetch(`https://viacep.com.br{cepLimpo}/json/`)
+            fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
                 .then(response => response.json())
                 .then(dados => {
                     if (dados.erro) {
@@ -282,6 +306,7 @@
                 .catch(() => {
                     erroInput.textContent = "Erro ao buscar o CEP.";
                     erroInput.style.display = "block";
+                    limparCamposEndereco();
                 });
         }
 

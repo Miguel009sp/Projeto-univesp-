@@ -53,6 +53,12 @@ class TerrenoViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class CasaViewSet(viewsets.ModelViewSet):
@@ -62,6 +68,12 @@ class CasaViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class ApartamentoViewSet(viewsets.ModelViewSet):
@@ -71,6 +83,12 @@ class ApartamentoViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class SalaComercialViewSet(viewsets.ModelViewSet):
@@ -80,6 +98,12 @@ class SalaComercialViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class GalpaoComercialViewSet(viewsets.ModelViewSet):
@@ -89,6 +113,12 @@ class GalpaoComercialViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class SitioViewSet(viewsets.ModelViewSet):
@@ -98,6 +128,12 @@ class SitioViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class ChacaraViewSet(viewsets.ModelViewSet):
@@ -107,21 +143,18 @@ class ChacaraViewSet(viewsets.ModelViewSet):
         preco = obter_preco_filtrado(self.request)
         if preco:
             queryset = queryset.filter(valor_original__lte=preco)
+            
+        # Filtro por Número de Referência
+        referencia = self.request.query_params.get('referencia')
+        if referencia:
+            queryset = queryset.filter(referencia__icontains=referencia)
+            
         return queryset
 
 class VendaViewSet(viewsets.ModelViewSet):
     queryset = Venda.objects.all()
     serializer_class = VendaSerializer
 
-# --- FUNÇÃO PARA RENDERIZAR O SITE (O QUE ESTAVA FALTANDO) ---
+# --- FUNÇÃO PARA RENDERIZAR O SITE ---
 def index(request):
     return render(request, 'core/index.html')
-
-
-    
-
-
-    
-    
-
-        
