@@ -7,7 +7,8 @@ https://docs.djangoproject.com/en/6.0/topics/http/urls/
 
 from django.contrib import admin
 from django.urls import path, include
-
+from django.conf import settings
+from django.conf.urls.static import static
 urlpatterns = [
     # Rotas da Interface do Site (Login, Home, Cadastro de Imóveis)
     path('', include('siteapp.urls')),
@@ -18,4 +19,4 @@ urlpatterns = [
     # Rotas de Endpoints da API REST (Isoladas com o prefixo 'api/')
     path('api/', include('core.urls')),
     
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

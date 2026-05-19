@@ -127,6 +127,25 @@
             background-color: #0d6efd;
             color: white;
         }
+        .btn-excluir {
+            font-size: 13px;
+            color: #b95000;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid #0d6efd;
+            padding: 4px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        btn-excluir:hover {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .card-imoveis{
+            display: flex;
+            column-gap: 10px;
+        }
     </style>
 </head>
 
@@ -180,7 +199,7 @@
     
     <div class="row row-cols-1 row-cols-md-3 g-4 mt-1 mb-5">
         {% for imovel in imoveis %}
-            <div class="col">
+            <div class="col" onclick="window.location.href=`{% url 'editar_imovel' imovel.pk %}`">
                 <div class="card-imovel-custom h-100">
                     <div class="wrapper-foto-imovel">
                         {% if imovel.foto_principal %}
@@ -215,6 +234,9 @@
                         
                         <a href="{% url 'editar_imovel' imovel.pk %}" class="btn-editar">
                             ✏️ Editar
+                        </a>
+                        <a href="{% url 'excluir_imovel' imovel.pk %}" class="btn-excluir">
+                            Excluir 
                         </a>
                     </div>
                 </div>

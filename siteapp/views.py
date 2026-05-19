@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.views.decorators.http import require_POST
-from core.models import Casa, Usuario, FotosImovel, EnderecoImovel
+from core.models import Casa, Usuario, FotosImovel, EnderecoImovel, Imovel
 
 # ==============================================================================
 # MÓDULO 1: AUTENTICAÇÃO E SESSÃO DO USUÁRIO SECRETA E SEGURA
@@ -168,12 +168,11 @@ def cadastro_imoveis_view(request, pk=None):
     return render(request, 'cadastro_imoveis.html', {'imovel': imovel})
 
 
-@require_POST
 def excluir_imovel_view(request, pk):
     """
     Remove fisicamente as propriedades do catálogo através do método POST de segurança.
     """
-    imovel = get_object_or_404(Casa, pk=pk)
+    imovel = get_object_or_404(Imovel, pk=pk)
     imovel.delete()
     messages.success(request, "Imóvel excluído com sucesso!")
     return redirect('buscar_imoveis')
